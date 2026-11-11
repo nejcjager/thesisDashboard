@@ -20,6 +20,12 @@ export function errorText(err: unknown): string {
     if (raw.includes(code)) return messages[code]
   }
   if (raw.includes('Database error saving new user')) return messages.EMAIL_NOT_ALLOWED
-  if (raw.toLowerCase().includes('rate limit')) return 'Preveč poskusov. Počakaj minuto in poskusi znova.'
+  // Per-address cooldown between login links.
+  const cooldown = raw.match(/after (\d+) seconds?/)
+  if (cooldown) return `Povezavo si že zahteval. Počakaj še ${cooldown[1]} s in poskusi znova.`
+  // Project-wide hourly cap on outgoing emails.
+  if (raw.toLowerCase().includes('rate limit')) {
+    return 'Dosežena je urna omejitev pošiljanja e-pošte. Poskusi znova čez približno eno uro ali obvesti skrbnika.'
+  }
   return raw || 'Nekaj je šlo narobe.'
 }

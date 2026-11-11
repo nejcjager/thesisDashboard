@@ -28,7 +28,7 @@ Someone who sits at the computer and clicks "yes" without working can't be caugh
 4. **Authentication → URL Configuration**: set *Site URL* to your Pages URL (e.g. `https://<user>.github.io/thesisDashboard/`). Add the same URL, plus `http://localhost:5173/` for local development, under *Redirect URLs*.
 5. **Project Settings → API**: copy the *Project URL* and the *anon public* key.
 
-Supabase's built-in email sender only allows a few emails per hour. That's enough for 3–6 people, since sessions persist and you rarely need a new link. If you hit the limit, add your own SMTP server under **Authentication → Emails → SMTP Settings**.
+6. **Email (SMTP)**: Supabase's built-in email sender allows only about 2 emails per hour for the whole project, so a group logging in for the first time hits the limit almost immediately ("urna omejitev pošiljanja e-pošte"). Set up your own SMTP server under **Authentication → Emails → SMTP Settings**, e.g. a free Resend or Brevo account, or Gmail with an app password (host `smtp.gmail.com`, port 465). Then raise **Authentication → Rate Limits → emails sent per hour** (e.g. 30). Each address still has to wait about 60 s between login links.
 
 ### 2. Local development
 
