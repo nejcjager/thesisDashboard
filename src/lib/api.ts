@@ -37,6 +37,9 @@ export const api = {
     if (opts.from) q = q.lt('started_at', opts.from)
     return unwrap<SessionWithSocial[]>(await q)
   },
+  async activeSessions() {
+    return unwrap<Session[]>(await supabase.from('sessions').select('*').eq('status', 'active'))
+  },
   async doubtedSessions() {
     const rows = unwrap<SessionWithSocial[]>(
       await supabase.from('sessions').select('*, reactions(*), doubts!inner(*)')

@@ -1,23 +1,41 @@
-import { HashRouter, NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { useEffect } from 'react'
+import { HashRouter, NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { AppProvider, useApp } from './lib/context'
+import { TimerProvider } from './lib/timer'
 import { configured } from './lib/supabase'
+import { onColor, personColor } from './lib/colors'
 import { isoWeekNumber, localDay } from './lib/week'
+import { AvatarMenu } from './components/AvatarMenu'
+import { SessionBanner } from './components/SessionBanner'
 import { Login } from './pages/Login'
 import { Today } from './pages/Today'
 import { Leaderboard } from './pages/Leaderboard'
-import { Log } from './pages/Log'
-import { Stats } from './pages/Stats'
 import { Profile } from './pages/Profile'
 import { Admin } from './pages/Admin'
 
 function Shell() {
   const { auth, authLoading, me } = useApp()
+  const { pathname } = useLocation()
+  const view = !auth ? 'login' : pathname === '/' ? 'timer' : 'page'
+
+  useEffect(() => { document.body.dataset.view = view }, [view])
+
+  // The signed-in user's color is the accent for buttons and highlights.
+  useEffect(() => {
+    const root = document.documentElement.style
+    if (!me) { root.removeProperty('--accent'); root.removeProperty('--on-accent'); return }
+    const c = personColor(me.color)
+    root.setProperty('--accent', c)
+    root.setProperty('--on-accent', onColor(c))
+  }, [me?.color])
 
   if (!configured) {
     return (
       <main className="login">
-        <h1>Dnevnik diplome</h1>
-        <p>Manjka povezava na Supabase. Nastavi <code>VITE_SUPABASE_URL</code> in <code>VITE_SUPABASE_ANON_KEY</code> (glej README).</p>
+        <div className="login-card">
+          <h1>Dnevnik diplome</h1>
+          <p>Manjka povezava na Supabase. Nastavi <code>VITE_SUPABASE_URL</code> in <code>VITE_SUPABASE_ANON_KEY</code> (glej README).</p>
+        </div>
       </main>
     )
   }
@@ -25,33 +43,34 @@ function Shell() {
   if (!auth) return <Login />
 
   return (
-    <div className="page">
-      <header className="masthead">
-        <div className="title">
-          <span className="brand">Dnevnik diplome</span>
-          <span className="weekno">{isoWeekNumber(localDay())}. teden</span>
-        </div>
-        <nav>
-          <NavLink to="/" end>Danes</NavLink>
-          <NavLink to="/lestvica">Lestvica</NavLink>
-          <NavLink to="/dnevnik">Dnevnik</NavLink>
-          <NavLink to="/statistika">Statistika</NavLink>
-          {me?.is_admin && <NavLink to="/skrbnik">Skrbnik</NavLink>}
-          <NavLink to="/profil" className="me">{me?.display_name ?? 'Profil'}</NavLink>
-        </nav>
-      </header>
-      <main>
-        <Routes>
-          <Route path="/" element={<Today />} />
-          <Route path="/lestvica" element={<Leaderboard />} />
-          <Route path="/dnevnik" element={<Log />} />
-          <Route path="/statistika" element={<Stats />} />
-          <Route path="/profil" element={<Profile />} />
-          <Route path="/skrbnik" element={<Admin />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </main>
-    </div>
+    <TimerProvider>
+      <div className="wrap">
+        <header className="top">
+          <div className="brand">
+            <span className="brand-dot" aria-hidden="true" />
+            Dnevnik diplome
+            <small>{isoWeekNumber(localDay())}. teden</small>
+          </div>
+          <nav className="tabs" aria-label="Glavni meni">
+            <NavLink to="/" end>Časovnik</NavLink>
+            <NavLink to="/lestvica">Lestvica</NavLink>
+          </nav>
+          <AvatarMenu />
+        </header>
+        {view !== 'timer' && <SessionBanner />}
+        <main>
+          <Routes>
+            <Route path="/" element={<Today />} />
+            <Route path="/lestvica" element={<Leaderboard />} />
+            <Route path="/profil" element={<Profile />} />
+            <Route path="/skrbnik" element={<Admin />} />
+            <Route path="/dnevnik" element={<Navigate to="/lestvica" replace />} />
+            <Route path="/statistika" element={<Navigate to="/lestvica" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
+        </main>
+      </div>
+    </TimerProvider>
   )
 }
 

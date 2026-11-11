@@ -4,16 +4,17 @@ import { useApp } from '../lib/context'
 import { errorText } from '../lib/errors'
 import { dateOf, hm, timeOf } from '../lib/format'
 import type { SessionWithSocial } from '../lib/types'
-import { Name } from './Name'
+import { Avatar } from './Avatar'
 
 const EMOJI = ['👏', '🔥', '☕', '🤔']
 
 const statusText: Record<string, string> = {
-  active: 'v teku',
+  active: 'piše zdaj',
   lapsed: 'zamujeno preverjanje',
-  capped: 'samodejno ustavljeno (omejitev)',
+  capped: 'samodejno ustavljeno',
   voided: 'razveljavljeno',
 }
+const statusTag: Record<string, string> = { active: 'live', voided: 'last' }
 
 export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?: () => void }) {
   const { me, byId } = useApp()
@@ -22,6 +23,7 @@ export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?:
   const [err, setErr] = useState<string | null>(null)
   const mine = me?.id === s.user_id
   const myDoubt = s.doubts.find(d => d.user_id === me?.id)
+  const active = s.status === 'active'
 
   const run = async (fn: () => Promise<unknown>) => {
     setErr(null)
@@ -36,40 +38,35 @@ export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?:
 
   return (
     <article className={`entry status-${s.status}`}>
-      <header>
-        <Name id={s.user_id} />
-        <span className="when">
-          {dateOf(s.started_at)}, {timeOf(s.started_at)}{s.ended_at && `–${timeOf(s.ended_at)}`}
-        </span>
-        <span className="dur">{s.credited_seconds != null ? hm(s.credited_seconds) : '…'}</span>
-      </header>
+      <div className="eh">
+        <Avatar id={s.user_id} live={active} />
+        <div className="who">
+          <strong>{byId.get(s.user_id)?.display_name ?? '?'}</strong>
+          <span>{dateOf(s.started_at)}, {active ? `od ${timeOf(s.started_at)}` : `${timeOf(s.started_at)}${s.ended_at ? `–${timeOf(s.ended_at)}` : ''}`}</span>
+        </div>
+        {s.status !== 'completed' && <span className={`tag ${statusTag[s.status] ?? ''}`}>{statusText[s.status]}</span>}
+        {s.credited_seconds != null && <span className="dur">{hm(s.credited_seconds)}</span>}
+      </div>
 
-      {s.status !== 'completed' && <p className="status">{statusText[s.status]}</p>}
-      {s.status === 'voided' && s.void_reason && <p className="status">Razlog: {s.void_reason}</p>}
-
-      {s.note ? <p className="note">{s.note}</p> : s.status !== 'active' && <p className="note muted">Brez zapisa.</p>}
+      {s.note ? <p className="note">{s.note}</p> : !active && <p className="note faint">Brez zapisa.</p>}
+      {s.status === 'voided' && s.void_reason && <p className="meta">Razlog: {s.void_reason}</p>}
       {s.image_path && (
         <a href={api.proofUrl(s.image_path)} target="_blank" rel="noreferrer" className="proof">
           <img src={api.proofUrl(s.image_path)} alt="Dokaz dela" loading="lazy" />
         </a>
       )}
-
-      <p className="meta">
-        Potrjenih preverjanj: {s.pings_answered}
-      </p>
+      {!active && <p className="meta">✔ {s.pings_answered} potrjenih preverjanj</p>}
 
       {s.doubts.length > 0 && (
         <ul className="doubts">
           {s.doubts.map(d => (
-            <li key={d.user_id}>
-              <strong>{byId.get(d.user_id)?.display_name ?? '?'} dvomi:</strong> {d.reason}
-            </li>
+            <li key={d.user_id}><strong>{byId.get(d.user_id)?.display_name ?? '?'} dvomi:</strong> {d.reason}</li>
           ))}
         </ul>
       )}
 
-      {s.status !== 'active' && (
-        <footer>
+      {!active && (
+        <div className="ef">
           {counts.map(c => (
             <button
               key={c.e}
@@ -82,9 +79,9 @@ export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?:
           ))}
           <span className="spacer" />
           {!mine && s.status !== 'voided' && (myDoubt
-            ? <button className="link" onClick={() => run(() => api.withdrawDoubt(s.id, me!.id))}>umakni dvom</button>
-            : <button className="link" onClick={() => setDoubting(v => !v)}>dvomim</button>)}
-        </footer>
+            ? <button className="linkbtn" onClick={() => run(() => api.withdrawDoubt(s.id, me!.id))}>umakni dvom</button>
+            : <button className="linkbtn" onClick={() => setDoubting(v => !v)}>dvomim</button>)}
+        </div>
       )}
 
       {doubting && !myDoubt && (
@@ -95,8 +92,8 @@ export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?:
             run(async () => { await api.doubt(s.id, reason.trim()); setDoubting(false); setReason('') })
           }}
         >
-          <input value={reason} onChange={e => setReason(e.target.value)} placeholder="Zakaj dvomiš?" minLength={3} required autoFocus />
-          <button type="submit">Oddaj</button>
+          <input value={reason} onChange={e => setReason(e.target.value)} placeholder="Zakaj dvomiš?" aria-label="Zakaj dvomiš?" minLength={3} required autoFocus />
+          <button type="submit" className="btn">Oddaj</button>
         </form>
       )}
       {err && <p className="error">{err}</p>}

@@ -2,18 +2,17 @@ import { useEffect, useState } from 'react'
 import { api } from '../lib/api'
 import { useApp } from '../lib/context'
 import { errorText } from '../lib/errors'
+import { PALETTE, personColor } from '../lib/colors'
 import { supabase } from '../lib/supabase'
-
-const COLORS = ['#1d1b16', '#b3261e', '#1f4e79', '#2e6b3a', '#7a4b0f', '#5b2a6e', '#0f6b6b', '#8a6d00']
 
 export function Profile() {
   const { me, reload } = useApp()
   const [name, setName] = useState('')
-  const [color, setColor] = useState(COLORS[0])
+  const [color, setColor] = useState(PALETTE[0])
   const [msg, setMsg] = useState<string | null>(null)
 
   useEffect(() => {
-    if (me) { setName(me.display_name); setColor(me.color) }
+    if (me) { setName(me.display_name); setColor(personColor(me.color)) }
   }, [me])
 
   if (!me) return null
@@ -30,27 +29,33 @@ export function Profile() {
   }
 
   return (
-    <div className="narrow">
+    <div className="panel narrow">
       <h1>Profil</h1>
-      <form onSubmit={save}>
-        <label>
+      <form className="stack" onSubmit={save}>
+        <label className="field">
           Ime na lestvici
           <input value={name} onChange={e => setName(e.target.value)} required maxLength={40} />
         </label>
         <fieldset className="colors">
           <legend>Barva</legend>
-          {COLORS.map(c => (
-            <label key={c} className="color-choice">
-              <input type="radio" name="color" value={c} checked={color === c} onChange={() => setColor(c)} />
-              <span style={{ background: c }} />
-            </label>
-          ))}
+          <p className="hint">Tvoja barva na lestvici in barva gumbov v aplikaciji.</p>
+          <div className="swatches">
+            {PALETTE.map(c => (
+              <label key={c} className="color-choice">
+                <input type="radio" name="color" value={c} checked={color === c} onChange={() => setColor(c)} aria-label={c} />
+                <span style={{ background: c }} />
+              </label>
+            ))}
+          </div>
         </fieldset>
-        <button className="primary">Shrani</button>
-        {msg && <p className="muted">{msg}</p>}
+        <div className="row">
+          <button className="btn primary">Shrani</button>
+          {msg && <span className="hint">{msg}</span>}
+        </div>
       </form>
-      <p className="muted small">Prijavljen kot {me.email}.</p>
-      <button onClick={() => supabase.auth.signOut()}>Odjava</button>
+      <hr />
+      <p className="hint">Prijavljen kot {me.email}.</p>
+      <button className="btn" onClick={() => supabase.auth.signOut()}>Odjava</button>
     </div>
   )
 }

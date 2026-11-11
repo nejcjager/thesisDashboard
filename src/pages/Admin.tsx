@@ -29,13 +29,13 @@ export function Admin() {
   const voidable = (recent.data ?? []).filter(s => s.status !== 'active')
 
   return (
-    <div>
+    <div className="panel">
       <h1>Skrbnik</h1>
       {msg && <p className="notice">{msg}</p>}
 
       <section>
         <h2>Udeleženci</h2>
-        <table className="standings">
+        <div className="table-wrap"><table className="simple">
           <thead><tr><th>E-pošta</th><th>Ime</th><th>Skrbnik</th><th /></tr></thead>
           <tbody>
             {(emails.data ?? []).map(a => (
@@ -45,13 +45,13 @@ export function Admin() {
                 <td>{a.is_admin ? 'da' : ''}</td>
                 <td>
                   {a.email !== me.email && (
-                    <button className="link" onClick={() => act(() => api.removeAllowedEmail(a.email).then(emails.reload), 'Odstranjeno.')}>odstrani</button>
+                    <button className="linkbtn" onClick={() => act(() => api.removeAllowedEmail(a.email).then(emails.reload), 'Odstranjeno.')}>odstrani</button>
                   )}
                 </td>
               </tr>
             ))}
           </tbody>
-        </table>
+        </table></div>
         <form
           className="inline"
           onSubmit={e => {
@@ -66,9 +66,9 @@ export function Admin() {
           <input type="email" placeholder="e-pošta" value={newEmail.email} onChange={e => setNewEmail(v => ({ ...v, email: e.target.value }))} required />
           <input placeholder="ime" value={newEmail.name} onChange={e => setNewEmail(v => ({ ...v, name: e.target.value }))} />
           <label className="check"><input type="checkbox" checked={newEmail.admin} onChange={e => setNewEmail(v => ({ ...v, admin: e.target.checked }))} /> skrbnik</label>
-          <button type="submit">Dodaj</button>
+          <button type="submit" className="btn">Dodaj</button>
         </form>
-        <p className="muted small">Odstranitev s seznama prepreči nove prijave, obstoječega računa pa ne izbriše (to narediš v Supabase → Authentication).</p>
+        <p className="hint">Odstranitev s seznama prepreči nove prijave, obstoječega računa pa ne izbriše (to narediš v Supabase → Authentication).</p>
       </section>
 
       {form && (
@@ -84,15 +84,15 @@ export function Admin() {
             <label>Preverjanje najkasneje po (min)<input type="number" step="0.5" min="0.5" value={form.ping_max_minutes} onChange={num('ping_max_minutes')} /></label>
             <label>Čas za odgovor (min)<input type="number" step="0.5" min="0.5" value={form.ping_window_minutes} onChange={num('ping_window_minutes')} /></label>
             <label>Najdaljša seja (h)<input type="number" step="0.5" min="0.5" value={form.max_session_hours} onChange={num('max_session_hours')} /></label>
-            <button className="primary">Shrani pravila</button>
+            <button className="btn primary">Shrani pravila</button>
           </form>
-          <p className="muted small">Spremembe intervala veljajo od naslednjega preverjanja naprej.</p>
+          <p className="hint">Spremembe intervala veljajo od naslednjega preverjanja naprej.</p>
         </section>
       )}
 
       <section>
         <h2>Seje z dvomi</h2>
-        {(doubted.data ?? []).length === 0 && <p className="muted">Ni dvomov.</p>}
+        {(doubted.data ?? []).length === 0 && <p className="empty">Ni dvomov.</p>}
         {(doubted.data ?? []).map(s => (
           <div key={s.id} className="admin-entry">
             <SessionEntry s={s} onChange={doubted.reload} />
@@ -117,12 +117,12 @@ export function Admin() {
 function VoidControls({ id, voided, act }: { id: string; voided: boolean; act: (fn: () => Promise<unknown>, ok?: string) => Promise<void> }) {
   const [reason, setReason] = useState('')
   if (voided) {
-    return <button className="link" onClick={() => act(() => api.restoreSession(id), 'Seja obnovljena.')}>obnovi sejo</button>
+    return <button className="linkbtn" onClick={() => act(() => api.restoreSession(id), 'Seja obnovljena.')}>obnovi sejo</button>
   }
   return (
     <form className="inline" onSubmit={e => { e.preventDefault(); act(() => api.voidSession(id, reason), 'Seja razveljavljena.') }}>
       <input placeholder="razlog za razveljavitev" value={reason} onChange={e => setReason(e.target.value)} required />
-      <button type="submit">Razveljavi</button>
+      <button type="submit" className="btn">Razveljavi</button>
     </form>
   )
 }

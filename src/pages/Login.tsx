@@ -21,20 +21,23 @@ export function Login() {
 
   return (
     <main className="login">
-      <h1>Dnevnik diplome</h1>
-      <p className="lede">Kdo je ta teden res pisal.</p>
-      {sent ? (
-        <p>Povezava za prijavo je poslana na <strong>{email}</strong>. Odpri jo v tem brskalniku.</p>
-      ) : (
-        <form onSubmit={submit}>
-          <label>
-            E-pošta
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
-          </label>
-          <button className="primary" disabled={busy}>{busy ? 'Pošiljam …' : 'Pošlji povezavo'}</button>
-          {err && <p className="error">{err}</p>}
-        </form>
-      )}
+      <div className="login-card">
+        <span className="brand-dot big" aria-hidden="true" />
+        <h1>Dnevnik diplome</h1>
+        <p className="lede">Kdo je ta teden res pisal.</p>
+        {sent ? (
+          <p>Povezava za prijavo je poslana na <strong>{email}</strong>. Odpri jo v tem brskalniku.</p>
+        ) : (
+          <form className="stack" onSubmit={submit}>
+            <label className="field">
+              E-pošta
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoFocus />
+            </label>
+            <button className="big-btn" disabled={busy}>{busy ? 'POŠILJAM …' : 'POŠLJI POVEZAVO'}</button>
+            {err && <p className="error">{err}</p>}
+          </form>
+        )}
+      </div>
     </main>
   )
 }
