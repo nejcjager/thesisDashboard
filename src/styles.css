@@ -50,6 +50,9 @@
 
 * { box-sizing: border-box; }
 html, body { min-height: 100%; }
+/* Reserve the scrollbar's width on every page (both sides, so the page stays centred):
+   long pages like Lestvica no longer shift left when their scrollbar appears. */
+html { scrollbar-gutter: stable both-edges; }
 body {
   margin: 0;
   background: var(--page-bg);
@@ -90,7 +93,11 @@ hr { border: 0; border-top: 1px solid var(--line); margin: 1.5rem 0; }
 main { padding-bottom: 4rem; }
 
 /* ---------- Header ---------- */
-.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-block: 18px; flex-wrap: wrap; }
+/* Equal 1fr side columns keep the tabs centred on the page, whatever the brand and avatar widths. */
+.top { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 12px; padding-block: 18px; }
+.top .brand { justify-self: start; min-width: 0; }
+.top .tabs { justify-self: center; }
+.top .me { justify-self: end; }
 .brand { font-family: var(--display); font-weight: 800; font-size: 1.25rem; letter-spacing: -0.01em; display: flex; align-items: center; gap: 10px; }
 .brand small { font-family: var(--body); font-weight: 600; font-size: 0.78rem; opacity: 0.75; letter-spacing: 0.02em; }
 .brand-dot { width: 14px; height: 14px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 4px var(--glass); flex: none; }
@@ -343,7 +350,10 @@ table.simple { width: 100%; border-collapse: collapse; }
 }
 
 @media (max-width: 640px) {
-  .top { justify-content: center; }
+  .top { grid-template-columns: 1fr auto; grid-template-areas: "brand me" "tabs tabs"; row-gap: 10px; }
+  .top .brand { grid-area: brand; }
+  .top .me { grid-area: me; }
+  .top .tabs { grid-area: tabs; }
   .brand small, .me-name { display: none; }
   .podium { gap: 8px; }
   .pod-hrs { font-size: 1.6rem; }
