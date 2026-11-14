@@ -5,6 +5,8 @@ import { TimerProvider } from './lib/timer'
 import { configured } from './lib/supabase'
 import { onColor, personColor } from './lib/colors'
 import { isoWeekNumber, localDay } from './lib/week'
+import { useT } from './lib/i18n'
+import { setBaseTitle } from './lib/alerts'
 import { AvatarMenu } from './components/AvatarMenu'
 import { SessionBanner } from './components/SessionBanner'
 import { Login } from './pages/Login'
@@ -16,9 +18,11 @@ import { Admin } from './pages/Admin'
 function Shell() {
   const { auth, authLoading, me } = useApp()
   const { pathname } = useLocation()
+  const { t } = useT()
   const view = !auth ? 'login' : pathname === '/' ? 'timer' : 'page'
 
   useEffect(() => { document.body.dataset.view = view }, [view])
+  useEffect(() => setBaseTitle(t.app.title), [t])
 
   // The signed-in user's color is the accent for buttons and highlights.
   useEffect(() => {
@@ -33,8 +37,8 @@ function Shell() {
     return (
       <main className="login">
         <div className="login-card">
-          <h1>Dnevnik diplome</h1>
-          <p>Manjka povezava na Supabase. Nastavi <code>VITE_SUPABASE_URL</code> in <code>VITE_SUPABASE_ANON_KEY</code> (glej README).</p>
+          <h1>{t.app.title}</h1>
+          <p>{t.app.notConfigured[0]}<code>VITE_SUPABASE_URL</code>{t.app.notConfigured[1]}<code>VITE_SUPABASE_ANON_KEY</code>{t.app.notConfigured[2]}</p>
         </div>
       </main>
     )
@@ -48,12 +52,12 @@ function Shell() {
         <header className="top">
           <div className="brand">
             <span className="brand-dot" aria-hidden="true" />
-            Dnevnik diplome
-            <small>{isoWeekNumber(localDay())}. teden</small>
+            {t.app.title}
+            <small>{t.app.weekNo(isoWeekNumber(localDay()))}</small>
           </div>
-          <nav className="tabs" aria-label="Glavni meni">
-            <NavLink to="/" end>Časovnik</NavLink>
-            <NavLink to="/lestvica">Lestvica</NavLink>
+          <nav className="tabs" aria-label={t.nav.main}>
+            <NavLink to="/" end>{t.nav.timer}</NavLink>
+            <NavLink to="/lestvica">{t.nav.leaderboard}</NavLink>
           </nav>
           <AvatarMenu />
         </header>

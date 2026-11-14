@@ -2,6 +2,8 @@
 
 A small dashboard where a few of us log the hours we put into our theses, with a weekly ranking.
 
+The interface is in Slovenian (default) and English. Switch with the SL | EN toggle on the login page or in the avatar menu. The choice is saved per browser. Notes, prize and penalty texts are shown exactly as people wrote them.
+
 ## How it keeps people honest
 
 - **The timer runs on the server.** Start and Stop call Postgres functions that use the database clock. The browser never sends a time, and nobody can write to the `sessions` table directly.
@@ -54,4 +56,5 @@ On the admin page, set the check-ins to 1 min / 1 min and the reply window to 1 
 - `src/hooks/useActiveSession.ts`: your current session and the check-in alerts, shared app-wide through `src/lib/timer.tsx` so check-ins fire on every page
 - `src/pages/`: two tabs, Časovnik (`Today.tsx`, the timer) and Lestvica (`Leaderboard.tsx`, podium, day heatmap and the activity feed), plus Profil and Skrbnik in the avatar menu
 - `src/lib/colors.ts`: the person color palette. Your color is also your UI accent. Old dark colors are mapped to the bright palette
+- `src/lib/i18n/`: UI text. `sl.ts` is the source dictionary, `en.ts` must match its shape (the build fails otherwise), `core.ts` holds the active language, `index.tsx` the `useT()` hook
 - `src/lib/week.ts`, `src/lib/streaks.ts`: week and streak calculations (Mon–Sun, Europe/Ljubljana), unit-tested

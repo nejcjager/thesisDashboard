@@ -6,6 +6,7 @@ import { weekDays } from '../lib/week'
 import type { DailyTotal } from '../lib/types'
 import { Avatar } from './Avatar'
 import { Confetti } from './Confetti'
+import { useT } from '../lib/i18n'
 
 export interface Row {
   userId: string
@@ -48,26 +49,27 @@ export function Standings({ rows, live, final, streaks }: {
   streaks?: Map<string, number>
 }) {
   const { me, byId } = useApp()
-  if (!rows.length) return <p className="empty">Še ni udeležencev.</p>
+  const { t } = useT()
+  if (!rows.length) return <p className="empty">{t.standings.noParticipants}</p>
 
   const top = rows[0].seconds || 1
   const iWon = final && rows.some(r => r.winner && r.userId === me?.id)
 
   const badges = (r: Row) => (
     <>
-      {live.has(r.userId) && <span className="tag live">piše</span>}
-      {r.winner && (final ? <span className="tag win">zmagovalec</span> : <span className="tag lead">vodi</span>)}
-      {r.loser && <span className="tag last">{final ? 'kazen' : 'zadnji'}</span>}
+      {live.has(r.userId) && <span className="tag live">{t.standings.writing}</span>}
+      {r.winner && (final ? <span className="tag win">{t.standings.winner}</span> : <span className="tag lead">{t.standings.leading}</span>)}
+      {r.loser && <span className="tag last">{final ? t.standings.penalty : t.standings.last}</span>}
     </>
   )
   const streak = (r: Row) => {
     const n = streaks?.get(r.userId) ?? 0
-    return n > 0 ? <span className="streak">🔥 {n} {n === 1 ? 'dan' : n === 2 ? 'dneva' : n < 5 ? 'dnevi' : 'dni'}</span> : null
+    return n > 0 ? <span className="streak">{t.standings.streak(n)}</span> : null
   }
   const name = (r: Row) => (
     <>
       {byId.get(r.userId)?.display_name ?? '?'}
-      {r.userId === me?.id && <span className="tag">ti</span>}
+      {r.userId === me?.id && <span className="tag">{t.standings.you}</span>}
     </>
   )
 
@@ -84,13 +86,13 @@ export function Standings({ rows, live, final, streaks }: {
 
   return (
     <>
-      <section className="podium" aria-label="Zmagovalni oder">
+      <section className="podium" aria-label={t.standings.podium}>
         {iWon && <Confetti />}
         {pod(rows[1], 2)}{pod(rows[0], 1)}{pod(rows[2], 3)}
       </section>
 
       {rows.length > 3 && (
-        <section className="rest" aria-label="Ostali">
+        <section className="rest" aria-label={t.standings.rest}>
           {rows.slice(3).map(r => (
             <div key={r.userId} className={`rrow${r.loser && final ? ' loser' : ''}`}>
               <span className="pl">{r.place}.</span>

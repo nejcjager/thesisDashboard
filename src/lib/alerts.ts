@@ -44,10 +44,17 @@ export function notify(title: string, body: string, onClick: () => void): Notifi
 }
 
 let blink: number | undefined
-const baseTitle = document.title
+let baseTitle = document.title
 
-export function blinkTitle(on: boolean, text = 'Še delaš?') {
+/** The tab title outside of check-ins; set when the language changes. */
+export function setBaseTitle(title: string) {
+  baseTitle = title
+  if (blink === undefined) document.title = title
+}
+
+export function blinkTitle(on: boolean, text: string) {
   clearInterval(blink)
+  blink = undefined
   document.title = baseTitle
   if (!on) return
   let flip = false

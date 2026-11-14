@@ -113,7 +113,7 @@ body:not([data-view="timer"]) .me-btn:hover { background: var(--surface-2); }
 .menu a:hover, .menu button:hover { background: var(--surface-2); }
 .menu-who { padding: 8px 12px 10px; border-bottom: 1px solid var(--line); margin-bottom: 4px; font-size: 0.85rem; color: var(--fg-soft); overflow-wrap: anywhere; }
 .menu-who strong { display: block; color: var(--fg); font-size: 1rem; }
-.menu-admin::after { content: "skrbnik"; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-left: 8px; }
+.menu-admin::after { content: attr(data-tag); font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--accent); margin-left: 8px; }
 
 /* Reminder strip on non-timer pages */
 .banner { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; border-radius: 14px; padding: 10px 16px; margin-bottom: 18px; font-weight: 600; text-decoration: none; }
@@ -320,6 +320,16 @@ table.simple { width: 100%; border-collapse: collapse; }
 .login-card .stack { width: 100%; }
 .login-card .big-btn { width: 100%; padding-inline: 16px; font-size: 1.1rem; }
 .login-card .error { color: inherit; }
+.login-top { display: flex; align-items: center; justify-content: space-between; width: 100%; }
+
+/* Language toggle (avatar menu and login card). */
+.lang-switch { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--surface-2); }
+.lang-switch button, .menu .lang-switch button { width: auto; display: inline-block; border: 0; border-radius: 999px; padding: 4px 11px; background: none; color: var(--fg-soft); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.06em; }
+.lang-switch button[aria-pressed="true"], .menu .lang-switch button[aria-pressed="true"] { background: var(--accent); color: var(--on-accent); }
+.login-card .lang-switch { background: var(--glass); }
+.login-card .lang-switch button { color: inherit; opacity: 0.75; }
+.login-card .lang-switch button[aria-pressed="true"] { background: var(--glass-strong); color: inherit; opacity: 1; }
+.menu-lang { padding: 8px 12px 4px; border-top: 1px solid var(--line); margin-top: 4px; }
 
 /* ---------- Motion ---------- */
 @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.025); } }

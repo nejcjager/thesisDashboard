@@ -4,9 +4,11 @@ import { useApp } from '../lib/context'
 import { errorText } from '../lib/errors'
 import { PALETTE, personColor } from '../lib/colors'
 import { supabase } from '../lib/supabase'
+import { useT } from '../lib/i18n'
 
 export function Profile() {
   const { me, reload } = useApp()
+  const { t } = useT()
   const [name, setName] = useState('')
   const [color, setColor] = useState(PALETTE[0])
   const [msg, setMsg] = useState<string | null>(null)
@@ -22,7 +24,7 @@ export function Profile() {
     try {
       await api.updateProfile(me.id, { display_name: name.trim(), color })
       await reload()
-      setMsg('Shranjeno.')
+      setMsg(t.common.saved)
     } catch (err) {
       setMsg(errorText(err))
     }
@@ -30,15 +32,15 @@ export function Profile() {
 
   return (
     <div className="panel narrow">
-      <h1>Profil</h1>
+      <h1>{t.profile.title}</h1>
       <form className="stack" onSubmit={save}>
         <label className="field">
-          Ime na lestvici
+          {t.profile.name}
           <input value={name} onChange={e => setName(e.target.value)} required maxLength={40} />
         </label>
         <fieldset className="colors">
-          <legend>Barva</legend>
-          <p className="hint">Tvoja barva na lestvici in barva gumbov v aplikaciji.</p>
+          <legend>{t.profile.color}</legend>
+          <p className="hint">{t.profile.colorHint}</p>
           <div className="swatches">
             {PALETTE.map(c => (
               <label key={c} className="color-choice">
@@ -49,13 +51,13 @@ export function Profile() {
           </div>
         </fieldset>
         <div className="row">
-          <button className="btn primary">Shrani</button>
+          <button className="btn primary">{t.profile.save}</button>
           {msg && <span className="hint">{msg}</span>}
         </div>
       </form>
       <hr />
-      <p className="hint">Prijavljen kot {me.email}.</p>
-      <button className="btn" onClick={() => supabase.auth.signOut()}>Odjava</button>
+      <p className="hint">{t.profile.signedInAs(me.email)}</p>
+      <button className="btn" onClick={() => supabase.auth.signOut()}>{t.menu.signOut}</button>
     </div>
   )
 }

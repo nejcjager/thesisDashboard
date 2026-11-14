@@ -1,12 +1,15 @@
 import { useApp } from '../lib/context'
 import { personColor } from '../lib/colors'
 import { hm, hoursDecimal } from '../lib/format'
-import { dayShort, weekDays } from '../lib/week'
+import { weekDays } from '../lib/week'
+import { useT } from '../lib/i18n'
 import type { Row } from './Standings'
 
 /** People × days grid; a cell gets stronger in the person's color the more hours it holds. */
 export function WeekHeatmap({ week, rows, today }: { week: string; rows: Row[]; today: string }) {
   const { byId } = useApp()
+  const { t } = useT()
+  const { dayShort } = t.dates
   const days = weekDays(week)
   const peak = Math.max(1, ...rows.flatMap(r => r.perDay))
 
@@ -15,9 +18,9 @@ export function WeekHeatmap({ week, rows, today }: { week: string; rows: Row[]; 
       <table className="heat">
         <thead>
           <tr>
-            <th className="who">Kdo</th>
+            <th className="who">{t.heatmap.who}</th>
             {days.map((d, i) => <th key={d} className={d === today ? 'today' : undefined}>{dayShort[i]}</th>)}
-            <th>Skupaj</th>
+            <th>{t.heatmap.total}</th>
           </tr>
         </thead>
         <tbody>
@@ -28,7 +31,7 @@ export function WeekHeatmap({ week, rows, today }: { week: string; rows: Row[]; 
               <tr key={r.userId}>
                 <td className="nm">{p?.display_name ?? '?'}</td>
                 {r.perDay.map((s, i) => {
-                  if (days[i] > today) return <td key={i} className="future" aria-label="še ni" />
+                  if (days[i] > today) return <td key={i} className="future" aria-label={t.heatmap.notYet} />
                   const a = s ? 0.18 + 0.82 * (s / peak) : 0
                   return (
                     <td

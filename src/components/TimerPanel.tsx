@@ -5,6 +5,7 @@ import { errorText } from '../lib/errors'
 import { clock, hm, timeOf } from '../lib/format'
 import { useTimer } from '../lib/timer'
 import { Modal } from './Modal'
+import { useT } from '../lib/i18n'
 
 /** Digits in fixed-width cells so the big clock doesn't wobble as it ticks. */
 function Clock({ seconds, small }: { seconds: number; small?: boolean }) {
@@ -18,11 +19,12 @@ function Clock({ seconds, small }: { seconds: number; small?: boolean }) {
 export function TimerPanel() {
   const { settings } = useApp()
   const t = useTimer()
+  const { t: tr } = useT()
   const [note, setNote] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [stopping, setStopping] = useState(false)
 
-  if (t.loading) return <section className="card"><span className="phase-pill">Nalagam …</span><Clock seconds={0} /></section>
+  if (t.loading) return <section className="card"><span className="phase-pill">{tr.timer.loading}</span><Clock seconds={0} /></section>
 
   const s = t.session
   const elapsed = s ? (t.serverNow - Date.parse(s.started_at)) / 1000 : 0
@@ -51,42 +53,42 @@ export function TimerPanel() {
       <section className="card" aria-live="polite">
         {t.phase === 'idle' && (
           <>
-            <span className="phase-pill">Pripravljen</span>
+            <span className="phase-pill">{tr.timer.ready}</span>
             <Clock seconds={0} />
-            <button className="big-btn" onClick={t.start} disabled={t.busy}>{t.busy ? 'ZAČENJAM …' : 'ZAČNI'}</button>
+            <button className="big-btn" onClick={t.start} disabled={t.busy}>{t.busy ? tr.timer.starting : tr.timer.start}</button>
           </>
         )}
 
         {t.phase === 'running' && s && (
           <>
-            <span className="phase-pill">Delaš</span>
+            <span className="phase-pill">{tr.timer.working}</span>
             <Clock seconds={elapsed} />
             <p className="sub">
-              Začetek ob <b>{timeOf(s.started_at)}</b> · potrjeno do <b>{timeOf(s.confirmed_until)}</b> · konec po <b>{settings?.max_session_hours} h</b>
+              {tr.timer.startedAt} <b>{timeOf(s.started_at)}</b> · {tr.timer.confirmedUntil} <b>{timeOf(s.confirmed_until)}</b> · {tr.timer.endsAfter} <b>{settings?.max_session_hours} h</b>
             </p>
-            <button className="big-btn" onClick={() => setStopping(true)} disabled={t.busy}>KONČAJ</button>
+            <button className="big-btn" onClick={() => setStopping(true)} disabled={t.busy}>{tr.timer.stop}</button>
           </>
         )}
 
         {t.phase === 'due' && s && (
           <>
-            <span className="phase-pill">Preverjanje</span>
-            <p className="checkin-title">Še delaš?</p>
-            <p className="countdown" role="alert">Potrdi v {mmss(left)}</p>
-            <button className="big-btn" onClick={t.answer} disabled={t.busy}>JA, ŠE DELAM</button>
+            <span className="phase-pill">{tr.timer.checkIn}</span>
+            <p className="checkin-title">{tr.timer.stillWorking}</p>
+            <p className="countdown" role="alert">{tr.timer.confirmIn(mmss(left))}</p>
+            <button className="big-btn" onClick={t.answer} disabled={t.busy}>{tr.timer.yesStillWorking}</button>
             <Clock seconds={elapsed} small />
           </>
         )}
 
         {forced && s && (
           <>
-            <span className="phase-pill">Seja ustavljena</span>
-            {s.credited_seconds != null && <p className="sub">Šteje <b>{hm(s.credited_seconds)}</b>.</p>}
+            <span className="phase-pill">{tr.timer.stopped}</span>
+            {s.credited_seconds != null && <p className="sub">{tr.timer.counted} <b>{hm(s.credited_seconds)}</b>.</p>}
           </>
         )}
 
         {(t.phase === 'running' || t.phase === 'due') && notificationsBlocked() && (
-          <p className="sub warn-on">Obvestila so v brskalniku blokirana, zato boš preverjanje videl le na tej strani. Dovoli jih v nastavitvah strani.</p>
+          <p className="sub warn-on">{tr.timer.notificationsBlocked}</p>
         )}
         {t.error && !modalOpen && <p className="sub warn-on">{errorText(t.error)}</p>}
       </section>
@@ -97,17 +99,17 @@ export function TimerPanel() {
             {forced && (
               <div className="alert">
                 {s.status === 'lapsed'
-                  ? `Seja se je ustavila, ker preverjanje ni bilo potrjeno. Šteje čas do ${timeOf(s.confirmed_until)}.`
-                  : 'Seja je dosegla najdaljše trajanje in se je ustavila.'}
-                {' '}Dodaj zapis, preden začneš novo.
+                  ? tr.timer.lapsed(timeOf(s.confirmed_until))
+                  : tr.timer.capped}
+                {' '}{tr.timer.addNoteFirst}
               </div>
             )}
-            <h2 id="stop-title">{forced ? 'Kaj si naredil?' : 'Konec seje'}</h2>
+            <h2 id="stop-title">{forced ? tr.timer.whatDidYouDo : tr.timer.endSession}</h2>
             <div className="chips">
               <span className="chip">⏱ {hm(s.credited_seconds ?? elapsed)}</span>
-              <span className="chip">✔ {s.pings_answered} {s.pings_answered === 1 ? 'preverjanje' : 'preverjanj'}</span>
+              <span className="chip">✔ {tr.timer.checks(s.pings_answered)}</span>
             </div>
-            <label htmlFor="stop-note">Kaj si naredil?</label>
+            <label htmlFor="stop-note">{tr.timer.whatDidYouDo}</label>
             <textarea
               id="stop-note"
               value={note}
@@ -115,17 +117,17 @@ export function TimerPanel() {
               rows={4}
               minLength={3}
               required
-              placeholder="Npr. prepisal poglavje 3.2, uredil literaturo, 600 novih besed."
+              placeholder={tr.timer.notePlaceholder}
               autoFocus
             />
             <label className="drop" htmlFor="stop-file">
-              Slika kot dokaz (neobvezno)
+              {tr.timer.proofImage}
               <input id="stop-file" type="file" accept="image/png,image/jpeg,image/webp,image/gif" onChange={e => setFile(e.target.files?.[0] ?? null)} />
             </label>
             {t.error && <p className="error">{errorText(t.error)}</p>}
             <div className="row end">
-              {!forced && <button type="button" className="btn" onClick={() => setStopping(false)}>Nazaj na delo</button>}
-              <button type="submit" className="btn primary" disabled={t.busy}>{t.busy ? 'Shranjujem …' : 'Shrani zapis'}</button>
+              {!forced && <button type="button" className="btn" onClick={() => setStopping(false)}>{tr.timer.backToWork}</button>}
+              <button type="submit" className="btn primary" disabled={t.busy}>{t.busy ? tr.timer.saving : tr.timer.saveNote}</button>
             </div>
           </form>
         </Modal>

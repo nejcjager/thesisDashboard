@@ -4,9 +4,11 @@ import { useApp, useLive } from '../lib/context'
 import { errorText } from '../lib/errors'
 import { SessionEntry } from '../components/SessionEntry'
 import type { Settings } from '../lib/types'
+import { useT } from '../lib/i18n'
 
 export function Admin() {
   const { me, settings, reload } = useApp()
+  const { t } = useT()
   const emails = useLive(() => api.allowedEmails(), ['allowed_emails'])
   const doubted = useLive(() => api.doubtedSessions(), ['sessions', 'doubts'])
   const recent = useLive(() => api.sessions({ limit: 20 }), ['sessions'])
@@ -16,9 +18,9 @@ export function Admin() {
 
   useEffect(() => { if (settings) setForm(settings) }, [settings])
 
-  if (!me?.is_admin) return <p>Ta stran je samo za skrbnika.</p>
+  if (!me?.is_admin) return <p>{t.admin.onlyAdmin}</p>
 
-  const act = async (fn: () => Promise<unknown>, ok = 'Shranjeno.') => {
+  const act = async (fn: () => Promise<unknown>, ok = t.common.saved) => {
     setMsg(null)
     try { await fn(); setMsg(ok) } catch (e) { setMsg(errorText(e)) }
   }
@@ -30,22 +32,22 @@ export function Admin() {
 
   return (
     <div className="panel">
-      <h1>Skrbnik</h1>
+      <h1>{t.admin.title}</h1>
       {msg && <p className="notice">{msg}</p>}
 
       <section>
-        <h2>Udeleženci</h2>
+        <h2>{t.admin.participants}</h2>
         <div className="table-wrap"><table className="simple">
-          <thead><tr><th>E-pošta</th><th>Ime</th><th>Skrbnik</th><th /></tr></thead>
+          <thead><tr><th>{t.admin.email}</th><th>{t.admin.name}</th><th>{t.admin.admin}</th><th /></tr></thead>
           <tbody>
             {(emails.data ?? []).map(a => (
               <tr key={a.email}>
                 <td>{a.email}</td>
                 <td>{a.display_name}</td>
-                <td>{a.is_admin ? 'da' : ''}</td>
+                <td>{a.is_admin ? t.admin.yes : ''}</td>
                 <td>
                   {a.email !== me.email && (
-                    <button className="linkbtn" onClick={() => act(() => api.removeAllowedEmail(a.email).then(emails.reload), 'Odstranjeno.')}>odstrani</button>
+                    <button className="linkbtn" onClick={() => act(() => api.removeAllowedEmail(a.email).then(emails.reload), t.admin.removed)}>{t.admin.remove}</button>
                   )}
                 </td>
               </tr>
@@ -60,39 +62,39 @@ export function Admin() {
               await api.addAllowedEmail(newEmail.email, newEmail.name, newEmail.admin)
               setNewEmail({ email: '', name: '', admin: false })
               emails.reload()
-            }, 'Dodano. Zdaj se lahko prijavi s tem naslovom.')
+            }, t.admin.added)
           }}
         >
-          <input type="email" placeholder="e-pošta" value={newEmail.email} onChange={e => setNewEmail(v => ({ ...v, email: e.target.value }))} required />
-          <input placeholder="ime" value={newEmail.name} onChange={e => setNewEmail(v => ({ ...v, name: e.target.value }))} />
-          <label className="check"><input type="checkbox" checked={newEmail.admin} onChange={e => setNewEmail(v => ({ ...v, admin: e.target.checked }))} /> skrbnik</label>
-          <button type="submit" className="btn">Dodaj</button>
+          <input type="email" placeholder={t.admin.emailPlaceholder} value={newEmail.email} onChange={e => setNewEmail(v => ({ ...v, email: e.target.value }))} required />
+          <input placeholder={t.admin.namePlaceholder} value={newEmail.name} onChange={e => setNewEmail(v => ({ ...v, name: e.target.value }))} />
+          <label className="check"><input type="checkbox" checked={newEmail.admin} onChange={e => setNewEmail(v => ({ ...v, admin: e.target.checked }))} /> {t.admin.adminCheck}</label>
+          <button type="submit" className="btn">{t.admin.add}</button>
         </form>
-        <p className="hint">Odstranitev s seznama prepreči nove prijave, obstoječega računa pa ne izbriše (to narediš v Supabase → Authentication).</p>
+        <p className="hint">{t.admin.removeHint}</p>
       </section>
 
       {form && (
         <section>
-          <h2>Pravila</h2>
+          <h2>{t.admin.rules}</h2>
           <form
             className="grid-form"
             onSubmit={e => { e.preventDefault(); act(async () => { await api.updateSettings(form); await reload() }) }}
           >
-            <label>Nagrada<input value={form.prize_text} onChange={e => setForm({ ...form, prize_text: e.target.value })} /></label>
-            <label>Kazen<input value={form.penalty_text} onChange={e => setForm({ ...form, penalty_text: e.target.value })} /></label>
-            <label>Preverjanje najprej po (min)<input type="number" step="0.5" min="0.5" value={form.ping_min_minutes} onChange={num('ping_min_minutes')} /></label>
-            <label>Preverjanje najkasneje po (min)<input type="number" step="0.5" min="0.5" value={form.ping_max_minutes} onChange={num('ping_max_minutes')} /></label>
-            <label>Čas za odgovor (min)<input type="number" step="0.5" min="0.5" value={form.ping_window_minutes} onChange={num('ping_window_minutes')} /></label>
-            <label>Najdaljša seja (h)<input type="number" step="0.5" min="0.5" value={form.max_session_hours} onChange={num('max_session_hours')} /></label>
-            <button className="btn primary">Shrani pravila</button>
+            <label>{t.admin.prize}<input value={form.prize_text} onChange={e => setForm({ ...form, prize_text: e.target.value })} /></label>
+            <label>{t.admin.penalty}<input value={form.penalty_text} onChange={e => setForm({ ...form, penalty_text: e.target.value })} /></label>
+            <label>{t.admin.pingMin}<input type="number" step="0.5" min="0.5" value={form.ping_min_minutes} onChange={num('ping_min_minutes')} /></label>
+            <label>{t.admin.pingMax}<input type="number" step="0.5" min="0.5" value={form.ping_max_minutes} onChange={num('ping_max_minutes')} /></label>
+            <label>{t.admin.pingWindow}<input type="number" step="0.5" min="0.5" value={form.ping_window_minutes} onChange={num('ping_window_minutes')} /></label>
+            <label>{t.admin.maxSession}<input type="number" step="0.5" min="0.5" value={form.max_session_hours} onChange={num('max_session_hours')} /></label>
+            <button className="btn primary">{t.admin.saveRules}</button>
           </form>
-          <p className="hint">Spremembe intervala veljajo od naslednjega preverjanja naprej.</p>
+          <p className="hint">{t.admin.rulesHint}</p>
         </section>
       )}
 
       <section>
-        <h2>Seje z dvomi</h2>
-        {(doubted.data ?? []).length === 0 && <p className="empty">Ni dvomov.</p>}
+        <h2>{t.admin.doubted}</h2>
+        {(doubted.data ?? []).length === 0 && <p className="empty">{t.admin.noDoubts}</p>}
         {(doubted.data ?? []).map(s => (
           <div key={s.id} className="admin-entry">
             <SessionEntry s={s} onChange={doubted.reload} />
@@ -102,7 +104,7 @@ export function Admin() {
       </section>
 
       <section>
-        <h2>Zadnje seje</h2>
+        <h2>{t.admin.recent}</h2>
         {voidable.map(s => (
           <div key={s.id} className="admin-entry">
             <SessionEntry s={s} onChange={recent.reload} />
@@ -116,13 +118,14 @@ export function Admin() {
 
 function VoidControls({ id, voided, act }: { id: string; voided: boolean; act: (fn: () => Promise<unknown>, ok?: string) => Promise<void> }) {
   const [reason, setReason] = useState('')
+  const { t } = useT()
   if (voided) {
-    return <button className="linkbtn" onClick={() => act(() => api.restoreSession(id), 'Seja obnovljena.')}>obnovi sejo</button>
+    return <button className="linkbtn" onClick={() => act(() => api.restoreSession(id), t.admin.restored)}>{t.admin.restore}</button>
   }
   return (
-    <form className="inline" onSubmit={e => { e.preventDefault(); act(() => api.voidSession(id, reason), 'Seja razveljavljena.') }}>
-      <input placeholder="razlog za razveljavitev" value={reason} onChange={e => setReason(e.target.value)} required />
-      <button type="submit" className="btn">Razveljavi</button>
+    <form className="inline" onSubmit={e => { e.preventDefault(); act(() => api.voidSession(id, reason), t.admin.voided) }}>
+      <input placeholder={t.admin.voidReason} value={reason} onChange={e => setReason(e.target.value)} required />
+      <button type="submit" className="btn">{t.admin.void}</button>
     </form>
   )
 }

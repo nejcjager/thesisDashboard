@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { blinkTitle, chime, notify, unlockAlerts } from '../lib/alerts'
 import { supabase } from '../lib/supabase'
+import { useT } from '../lib/i18n'
 import type { Session } from '../lib/types'
 
 export type Phase = 'idle' | 'running' | 'due' | 'needsNote'
@@ -20,6 +21,7 @@ export function useActiveSession(userId: string | undefined) {
   const offset = useRef(0)
   const notifiedFor = useRef<string | null>(null)
   const notification = useRef<Notification | null>(null)
+  const { t } = useT()
 
   const load = useCallback(async () => {
     if (!userId) return
@@ -90,16 +92,16 @@ export function useActiveSession(userId: string | undefined) {
     if (phase === 'due' && session && notifiedFor.current !== session.next_ping_at) {
       notifiedFor.current = session.next_ping_at
       chime()
-      notification.current = notify('Še delaš na diplomi?', 'Klikni za potrditev, sicer se štetje ustavi.', () => void answerRef.current())
+      notification.current = notify(t.timer.notifyTitle, t.timer.notifyBody, () => void answerRef.current())
     }
     if (phase !== 'due') {
       notification.current?.close()
       notification.current = null
     }
-    blinkTitle(phase === 'due')
-  }, [phase, session?.next_ping_at])
+    blinkTitle(phase === 'due', t.timer.stillWorking)
+  }, [phase, session?.next_ping_at, t])
 
-  useEffect(() => () => blinkTitle(false), [])
+  useEffect(() => () => blinkTitle(false, ''), [])
 
   const start = useCallback(async () => {
     unlockAlerts()

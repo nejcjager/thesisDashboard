@@ -1,5 +1,6 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { errorText } from './errors'
+import { setLang } from './i18n/core'
 
 describe('errorText', () => {
   it('shows the remaining seconds for the per-address cooldown', () => {
@@ -17,5 +18,18 @@ describe('errorText', () => {
 
   it('passes unknown messages through', () => {
     expect(errorText(new Error('something odd'))).toBe('something odd')
+  })
+})
+
+describe('errorText in English', () => {
+  beforeEach(() => setLang('en'))
+  afterEach(() => setLang('sl'))
+
+  it('maps RPC codes to English', () => {
+    expect(errorText(new Error('NOTE_REQUIRED'))).toBe('Write at least a short note about what you did.')
+  })
+
+  it('keeps the cooldown seconds', () => {
+    expect(errorText({ message: 'you can only request this after 47 seconds.' })).toBe('You already requested a link. Wait 47 s and try again.')
   })
 })

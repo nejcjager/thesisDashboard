@@ -1,3 +1,5 @@
+import { dict } from './i18n/core'
+
 export const TZ = 'Europe/Ljubljana'
 
 const dayFmt = new Intl.DateTimeFormat('en-CA', { timeZone: TZ, year: 'numeric', month: '2-digit', day: '2-digit' })
@@ -34,16 +36,13 @@ export function isoWeekNumber(day: string): number {
   return Math.floor((thursday.getTime() - jan1) / 86400000 / 7) + 1
 }
 
-const months = ['jan.', 'feb.', 'mar.', 'apr.', 'maj', 'jun.', 'jul.', 'avg.', 'sep.', 'okt.', 'nov.', 'dec.']
-
-/** "9.–15. nov. 2026", or "26. okt. – 1. nov. 2026" across months. */
+/** "9.–15. nov. 2026" in Slovenian, "9–15 Nov 2026" in English; spans months and years too. */
 export function weekLabel(start: string): string {
+  const { months, rangeSameMonth, rangeSameYear, rangeAny } = dict().dates
   const end = addDays(start, 6)
   const [y1, m1, d1] = start.split('-').map(Number)
   const [y2, m2, d2] = end.split('-').map(Number)
-  if (y1 !== y2) return `${d1}. ${months[m1 - 1]} ${y1} – ${d2}. ${months[m2 - 1]} ${y2}`
-  if (m1 !== m2) return `${d1}. ${months[m1 - 1]} – ${d2}. ${months[m2 - 1]} ${y2}`
-  return `${d1}.–${d2}. ${months[m2 - 1]} ${y2}`
+  if (y1 !== y2) return rangeAny(d1, months[m1 - 1], y1, d2, months[m2 - 1], y2)
+  if (m1 !== m2) return rangeSameYear(d1, months[m1 - 1], d2, months[m2 - 1], y2)
+  return rangeSameMonth(d1, d2, months[m2 - 1], y2)
 }
-
-export const dayShort = ['pon', 'tor', 'sre', 'čet', 'pet', 'sob', 'ned']

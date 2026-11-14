@@ -1,4 +1,5 @@
 import { TZ } from './week'
+import { locale } from './i18n/core'
 
 export function hm(seconds: number): string {
   const total = Math.max(0, Math.round(seconds / 60))
@@ -9,7 +10,7 @@ export function hm(seconds: number): string {
 }
 
 export function hoursDecimal(seconds: number): string {
-  return (seconds / 3600).toLocaleString('sl-SI', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  return (seconds / 3600).toLocaleString(locale(), { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 }
 
 export function clock(seconds: number): string {
@@ -20,8 +21,19 @@ export function clock(seconds: number): string {
   return `${h}:${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`
 }
 
-const timeFmt = new Intl.DateTimeFormat('sl-SI', { timeZone: TZ, hour: '2-digit', minute: '2-digit' })
-const dateFmt = new Intl.DateTimeFormat('sl-SI', { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' })
+const options = {
+  time: { timeZone: TZ, hour: '2-digit', minute: '2-digit' },
+  date: { timeZone: TZ, weekday: 'short', day: 'numeric', month: 'short' },
+} satisfies Record<string, Intl.DateTimeFormatOptions>
 
-export const timeOf = (iso: string) => timeFmt.format(new Date(iso))
-export const dateOf = (iso: string) => dateFmt.format(new Date(iso))
+// Formatters are costly to build, so keep one per kind and locale.
+const cache = new Map<string, Intl.DateTimeFormat>()
+function formatter(kind: keyof typeof options) {
+  const key = `${kind}:${locale()}`
+  let f = cache.get(key)
+  if (!f) cache.set(key, f = new Intl.DateTimeFormat(locale(), options[kind]))
+  return f
+}
+
+export const timeOf = (iso: string) => formatter('time').format(new Date(iso))
+export const dateOf = (iso: string) => formatter('date').format(new Date(iso))

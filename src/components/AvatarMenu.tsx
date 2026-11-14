@@ -3,9 +3,12 @@ import { Link, useLocation } from 'react-router-dom'
 import { useApp } from '../lib/context'
 import { supabase } from '../lib/supabase'
 import { Avatar } from './Avatar'
+import { LangSwitch } from './LangSwitch'
+import { useT } from '../lib/i18n'
 
 export function AvatarMenu() {
   const { me } = useApp()
+  const { t } = useT()
   const [open, setOpen] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
   const { pathname } = useLocation()
@@ -36,9 +39,10 @@ export function AvatarMenu() {
       {open && (
         <div className="menu" role="menu">
           <div className="menu-who"><strong>{me.display_name}</strong>{me.email}</div>
-          <Link to="/profil" role="menuitem">Profil</Link>
-          {me.is_admin && <Link to="/skrbnik" role="menuitem" className="menu-admin">Skrbnik</Link>}
-          <button role="menuitem" onClick={() => supabase.auth.signOut()}>Odjava</button>
+          <Link to="/profil" role="menuitem">{t.menu.profile}</Link>
+          {me.is_admin && <Link to="/skrbnik" role="menuitem" className="menu-admin" data-tag={t.menu.adminTag}>{t.menu.admin}</Link>}
+          <button role="menuitem" onClick={() => supabase.auth.signOut()}>{t.menu.signOut}</button>
+          <div className="menu-lang"><LangSwitch /></div>
         </div>
       )}
     </div>

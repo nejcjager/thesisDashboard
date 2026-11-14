@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { addDays, isoWeekNumber, localDay, weekLabel, weekStart } from './week'
 import { streaks } from './streaks'
 import { hm } from './format'
+import { setLang } from './i18n/core'
 
 describe('week', () => {
   it('finds Monday', () => {
@@ -22,6 +23,13 @@ describe('week', () => {
     expect(weekLabel('2026-11-09')).toBe('9.–15. nov. 2026')
     expect(weekLabel('2026-10-26')).toBe('26. okt. – 1. nov. 2026')
   })
+  it('labels weeks in English', () => {
+    setLang('en')
+    expect(weekLabel('2026-11-09')).toBe('9–15 Nov 2026')
+    expect(weekLabel('2026-10-26')).toBe('26 Oct – 1 Nov 2026')
+    expect(weekLabel('2026-12-28')).toBe('28 Dec 2026 – 3 Jan 2027')
+  })
+  afterEach(() => setLang('sl'))
   it('computes ISO week numbers', () => {
     expect(isoWeekNumber('2026-11-11')).toBe(46)
     expect(isoWeekNumber('2027-01-01')).toBe(53)
