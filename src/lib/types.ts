@@ -16,6 +16,7 @@ export interface Settings {
   ping_max_minutes: number
   ping_window_minutes: number
   max_session_hours: number
+  max_pause_minutes: number
 }
 
 export interface Session {
@@ -26,6 +27,10 @@ export interface Session {
   next_ping_at: string
   ping_deadline: string
   pings_answered: number
+  /** Set while the session is paused (the stop dialog is open). */
+  paused_at: string | null
+  /** Total seconds of finished pauses. */
+  paused_seconds: number
   ended_at: string | null
   credited_seconds: number | null
   status: SessionStatus

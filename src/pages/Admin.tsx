@@ -86,6 +86,7 @@ export function Admin() {
             <label>{t.admin.pingMax}<input type="number" step="0.5" min="0.5" value={form.ping_max_minutes} onChange={num('ping_max_minutes')} /></label>
             <label>{t.admin.pingWindow}<input type="number" step="0.5" min="0.5" value={form.ping_window_minutes} onChange={num('ping_window_minutes')} /></label>
             <label>{t.admin.maxSession}<input type="number" step="0.5" min="0.5" value={form.max_session_hours} onChange={num('max_session_hours')} /></label>
+            <label>{t.admin.maxPause}<input type="number" step="1" min="1" value={form.max_pause_minutes} onChange={num('max_pause_minutes')} /></label>
             <button className="btn primary">{t.admin.saveRules}</button>
           </form>
           <p className="hint">{t.admin.rulesHint}</p>

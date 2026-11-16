@@ -8,9 +8,10 @@ The interface is in Slovenian (default) and English. Switch with the SL | EN tog
 
 - **The timer runs on the server.** Start and Stop call Postgres functions that use the database clock. The browser never sends a time, and nobody can write to the `sessions` table directly.
 - **Random check-ins.** While a session runs, the server picks a random moment every 20–40 minutes and asks *"Še delaš?"*. You get a desktop notification, a chime and a blinking tab title, the timer page turns amber (on other pages a banner appears), and you have 5 minutes to confirm. If you miss it, the session stops and **only time up to your last confirmation counts**. Closing the tab or putting the laptop to sleep has the same result.
+- **Stop is a pause until you save the note.** *KONČAJ* freezes the timer on the server and no check-ins come while the note dialog is open. Saving the note ends the session, and time counts only up to the moment you pressed *KONČAJ*. *Nazaj na delo* resumes the timer from where it stopped, with a new random check-in. A pause left open for more than 30 minutes closes the session by itself, crediting time up to the pause, and the note is asked for next time.
 - **Proof.** Each session needs a short note on what you did, and you can attach an image. Everyone can see every session in the activity feed on *Lestvica*.
 - **Peer pressure.** Anyone can react to someone else's session or flag *dvomim* (doubt) with a reason. The admin can void a session, and voiding can be undone.
-- **Cap.** A session stops itself after 4 hours.
+- **Cap.** A session stops itself after 4 hours of working time. Pauses don't count toward it.
 
 All of these numbers can be changed on the *Skrbnik* (admin) page, which admins open from the avatar menu.
 
@@ -21,7 +22,7 @@ Someone who sits at the computer and clicks "yes" without working can't be caugh
 ### 1. Supabase (free tier)
 
 1. Create a project at https://supabase.com, choosing the region closest to you (e.g. Frankfurt).
-2. **SQL Editor → New query**: paste all of `supabase/migrations/0001_init.sql` and run it.
+2. **SQL Editor → New query**: paste all of `supabase/migrations/0001_init.sql` and run it, then do the same with each later migration in order (`0002_pause.sql`, …). On an existing project, run only the ones you haven't run yet.
    - If the `pg_cron` line fails, enable it under **Database → Extensions → pg_cron** and run the last two lines again. The site also closes stale sessions on its own when pages load, so cron is a backup.
 3. Add yourself as the first admin (SQL editor):
    ```sql
@@ -53,6 +54,7 @@ On the admin page, set the check-ins to 1 min / 1 min and the reply window to 1 
 ## Structure
 
 - `supabase/migrations/0001_init.sql`: tables, row-level security, the timer functions (`start_session`, `answer_ping`, `stop_session`, `finalize_stale_sessions`, `void_session`) and the reporting views
+- `supabase/migrations/0002_pause.sql`: pausing on *KONČAJ* (`pause_session`, `resume_session`), the pause limit, and a cap that counts working time only
 - `src/hooks/useActiveSession.ts`: your current session and the check-in alerts, shared app-wide through `src/lib/timer.tsx` so check-ins fire on every page
 - `src/pages/`: two tabs, Časovnik (`Today.tsx`, the timer) and Lestvica (`Leaderboard.tsx`, podium, day heatmap and the activity feed), plus Profil and Skrbnik in the avatar menu
 - `src/lib/colors.ts`: the person color palette. Your color is also your UI accent. Old dark colors are mapped to the bright palette

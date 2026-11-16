@@ -1,11 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { api } from '../lib/api'
 import { blinkTitle, chime, notify, unlockAlerts } from '../lib/alerts'
+import { useApp } from '../lib/context'
 import { supabase } from '../lib/supabase'
 import { useT } from '../lib/i18n'
 import type { Session } from '../lib/types'
 
-export type Phase = 'idle' | 'running' | 'due' | 'needsNote'
+export type Phase = 'idle' | 'running' | 'due' | 'paused' | 'needsNote'
 
 /**
  * Tracks the signed-in user's open session and drives the check-in alerts.
@@ -22,6 +23,7 @@ export function useActiveSession(userId: string | undefined) {
   const notifiedFor = useRef<string | null>(null)
   const notification = useRef<Notification | null>(null)
   const { t } = useT()
+  const { settings } = useApp()
 
   const load = useCallback(async () => {
     if (!userId) return
@@ -46,7 +48,9 @@ export function useActiveSession(userId: string | undefined) {
 
   const serverNow = now + offset.current
   let phase: Phase = 'idle'
-  if (session?.status === 'active') {
+  if (session?.status === 'active' && session.paused_at) {
+    phase = 'paused'
+  } else if (session?.status === 'active') {
     const due = Date.parse(session.next_ping_at)
     const deadline = Date.parse(session.ping_deadline)
     if (serverNow >= deadline) phase = 'running' // about to lapse; server will confirm
@@ -55,26 +59,30 @@ export function useActiveSession(userId: string | undefined) {
     phase = 'needsNote'
   }
 
-  const missed = session?.status === 'active' && serverNow >= Date.parse(session.ping_deadline)
+  const missed = phase === 'running' && session !== null && serverNow >= Date.parse(session.ping_deadline)
+  // A pause left open too long; the server closes it, crediting time up to the pause.
+  const pauseExpired = phase === 'paused' && settings != null &&
+    serverNow >= Date.parse(session!.paused_at!) + settings.max_pause_minutes * 60_000
 
   // Ask the server to close it once the window has passed.
   useEffect(() => {
-    if (!missed) return
+    if (!missed && !pauseExpired) return
     api.finalize().then(load).catch(console.error)
-  }, [missed, load])
+  }, [missed, pauseExpired, load])
 
   const track = (s: Session, sentAt: number, serverTs: string) => {
     offset.current = Date.parse(serverTs) - (sentAt + Date.now()) / 2
     setSession(s)
   }
 
-  const answer = useCallback(async () => {
+  // Check-in, pause and resume all return the session with confirmed_until = server now().
+  const confirm = useCallback(async (call: (id: string) => Promise<Session>) => {
     if (!session) return
     setBusy(true)
     setError(null)
     try {
       const sent = Date.now()
-      const s = await api.answerPing(session.id)
+      const s = await call(session.id)
       track(s, sent, s.confirmed_until)
     } catch (e) {
       setError(String((e as Error).message))
@@ -83,6 +91,10 @@ export function useActiveSession(userId: string | undefined) {
       setBusy(false)
     }
   }, [session, load])
+
+  const answer = useCallback(() => confirm(api.answerPing), [confirm])
+  const pause = useCallback(() => confirm(api.pause), [confirm])
+  const resume = useCallback(() => confirm(api.resume), [confirm])
 
   const answerRef = useRef(answer)
   answerRef.current = answer
@@ -135,5 +147,5 @@ export function useActiveSession(userId: string | undefined) {
     }
   }, [session, userId, load])
 
-  return { session, loading, phase, serverNow, busy, error, start, stop, answer }
+  return { session, loading, phase, serverNow, busy, error, start, stop, answer, pause, resume }
 }

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useTimer } from '../lib/timer'
 import { clock } from '../lib/format'
+import { workedSeconds } from '../lib/session'
 import { useT } from '../lib/i18n'
 
 /** On pages other than the timer: a reminder that a session runs, a check-in is due, or a note is missing. */
@@ -24,10 +25,17 @@ export function SessionBanner() {
       </div>
     )
   }
+  if (t.phase === 'paused' && s) {
+    return (
+      <Link to="/" className="banner banner-note" role="status">
+        {tr.timer.paused} · {clock(workedSeconds(s, t.serverNow))} · {tr.banner.finishOrResume}
+      </Link>
+    )
+  }
   if (t.phase === 'running' && s) {
     return (
       <Link to="/" className="banner banner-run">
-        <span className="dot-live" aria-hidden="true" /> {tr.timer.working} · {clock((t.serverNow - Date.parse(s.started_at)) / 1000)}
+        <span className="dot-live" aria-hidden="true" /> {tr.timer.working} · {clock(workedSeconds(s, t.serverNow))}
       </Link>
     )
   }

@@ -51,6 +51,8 @@ export const api = {
   finalize: async () => { await supabase.rpc('finalize_stale_sessions') },
   start: async () => unwrap<Session>(await supabase.rpc('start_session')),
   answerPing: async (id: string) => unwrap<Session>(await supabase.rpc('answer_ping', { p_session: id })),
+  pause: async (id: string) => unwrap<Session>(await supabase.rpc('pause_session', { p_session: id })),
+  resume: async (id: string) => unwrap<Session>(await supabase.rpc('resume_session', { p_session: id })),
   stop: async (id: string, note: string, imagePath: string | null) =>
     unwrap<Session>(await supabase.rpc('stop_session', { p_session: id, p_note: note, p_image_path: imagePath })),
   voidSession: async (id: string, reason: string) =>

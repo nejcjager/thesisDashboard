@@ -70,7 +70,8 @@ body[data-view="timer"][data-phase="due"] {
   --page-bg: var(--due); --page-fg: var(--on-due);
   --glass: rgba(255, 255, 255, 0.34); --glass-strong: rgba(255, 255, 255, 0.5);
 }
-body[data-view="timer"][data-phase="needsNote"] { --page-bg: var(--note); }
+body[data-view="timer"][data-phase="needsNote"],
+body[data-view="timer"][data-phase="paused"] { --page-bg: var(--note); }
 body[data-view="login"] { --page-bg: var(--idle); --page-fg: var(--on-state); }
 
 a { color: inherit; text-underline-offset: 3px; }

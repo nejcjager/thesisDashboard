@@ -42,7 +42,8 @@ export const sl = {
     nobody: 'Nihče. Bodi prvi.',
     you: 'Ti',
     rules: (min: number, max: number, window: number) =>
-      `Med delom te stran vsakih ${min}–${max} min vpraša, ali še delaš. Na odgovor imaš ${window} min. Šteje samo čas do zadnje potrditve.`,
+      `Med delom te stran vsakih ${min}–${max} min vpraša, ali še delaš. Na odgovor imaš ${window} min. Šteje samo čas do zadnje potrditve. KONČAJ ustavi štetje, dokler ne shraniš zapisa ali se vrneš na delo.`,
+    pausedAt: (time: string) => `pavza od ${time}`,
   },
   timer: {
     loading: 'Nalagam …',
@@ -63,6 +64,9 @@ export const sl = {
     notificationsBlocked: 'Obvestila so v brskalniku blokirana, zato boš preverjanje videl le na tej strani. Dovoli jih v nastavitvah strani.',
     lapsed: (time: string) => `Seja se je ustavila, ker preverjanje ni bilo potrjeno. Šteje čas do ${time}.`,
     capped: 'Seja je dosegla najdaljše trajanje in se je ustavila.',
+    pausedOut: (time: string) => `Seja se je samodejno zaključila, ker je bila predolgo na pavzi. Šteje čas do ${time}.`,
+    paused: 'Pavza',
+    autoCloseIn: (left: string) => `Štetje stoji. Če se ne vrneš, se seja čez ${left} sama zaključi.`,
     addNoteFirst: 'Dodaj zapis, preden začneš novo.',
     whatDidYouDo: 'Kaj si naredil?',
     endSession: 'Konec seje',
@@ -79,6 +83,7 @@ export const sl = {
     yesStillWorking: 'Ja, še delam',
     stopped: 'Seja se je ustavila.',
     addNote: 'Dodaj zapis',
+    finishOrResume: 'shrani zapis ali se vrni na delo',
   },
   board: {
     week: 'Teden',
@@ -117,6 +122,7 @@ export const sl = {
   entry: {
     status: {
       active: 'piše zdaj',
+      paused: 'na pavzi',
       lapsed: 'zamujeno preverjanje',
       capped: 'samodejno ustavljeno',
       voided: 'razveljavljeno',
@@ -163,6 +169,7 @@ export const sl = {
     pingMax: 'Preverjanje najkasneje po (min)',
     pingWindow: 'Čas za odgovor (min)',
     maxSession: 'Najdaljša seja (h)',
+    maxPause: 'Najdaljša pavza (min)',
     saveRules: 'Shrani pravila',
     rulesHint: 'Spremembe intervala veljajo od naslednjega preverjanja naprej.',
     doubted: 'Seje z dvomi',
@@ -180,6 +187,9 @@ export const sl = {
     ALREADY_ACTIVE: 'Seja že teče.',
     SESSION_CLOSED: 'Seja je že zaključena.',
     PING_NOT_DUE: 'Preverjanje še ni na vrsti.',
+    SESSION_PAUSED: 'Seja je na pavzi.',
+    ALREADY_PAUSED: 'Seja je že na pavzi.',
+    NOT_PAUSED: 'Seja ni na pavzi.',
     NOTE_REQUIRED: 'Napiši vsaj kratek zapis o tem, kaj si naredil.',
     SESSION_LOCKED: 'Seja je zaklenjena in je ni več mogoče spreminjati.',
     NOT_ADMIN: 'Za to potrebuješ skrbniške pravice.',

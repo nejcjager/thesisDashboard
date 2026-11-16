@@ -9,7 +9,7 @@ import { useT } from '../lib/i18n'
 
 const EMOJI = ['👏', '🔥', '☕', '🤔']
 
-const statusTag: Record<string, string> = { active: 'live', voided: 'last' }
+const statusTag: Record<string, string> = { active: 'live', paused: 'last', voided: 'last' }
 
 export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?: () => void }) {
   const { me, byId } = useApp()
@@ -20,6 +20,7 @@ export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?:
   const mine = me?.id === s.user_id
   const myDoubt = s.doubts.find(d => d.user_id === me?.id)
   const active = s.status === 'active'
+  const tagKey = active && s.paused_at ? 'paused' : s.status
 
   const run = async (fn: () => Promise<unknown>) => {
     setErr(null)
@@ -35,12 +36,12 @@ export function SessionEntry({ s, onChange }: { s: SessionWithSocial; onChange?:
   return (
     <article className={`entry status-${s.status}`}>
       <div className="eh">
-        <Avatar id={s.user_id} live={active} />
+        <Avatar id={s.user_id} live={active && !s.paused_at} />
         <div className="who">
           <strong>{byId.get(s.user_id)?.display_name ?? '?'}</strong>
           <span>{dateOf(s.started_at)}, {active ? t.common.since(timeOf(s.started_at)) : `${timeOf(s.started_at)}${s.ended_at ? `–${timeOf(s.ended_at)}` : ''}`}</span>
         </div>
-        {s.status !== 'completed' && <span className={`tag ${statusTag[s.status] ?? ''}`}>{t.entry.status[s.status]}</span>}
+        {s.status !== 'completed' && <span className={`tag ${statusTag[tagKey] ?? ''}`}>{t.entry.status[tagKey]}</span>}
         {s.credited_seconds != null && <span className="dur">{hm(s.credited_seconds)}</span>}
       </div>
 

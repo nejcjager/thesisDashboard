@@ -41,7 +41,8 @@ export const en: Dict = {
     nobody: 'Nobody. Be the first.',
     you: 'You',
     rules: (min, max, window) =>
-      `While you work, the page asks every ${min}–${max} min whether you're still working. You have ${window} min to answer. Only time up to your last confirmation counts.`,
+      `While you work, the page asks every ${min}–${max} min whether you're still working. You have ${window} min to answer. Only time up to your last confirmation counts. STOP freezes the timer until you save a note or go back to work.`,
+    pausedAt: time => `paused since ${time}`,
   },
   timer: {
     loading: 'Loading …',
@@ -62,6 +63,9 @@ export const en: Dict = {
     notificationsBlocked: 'Notifications are blocked in this browser, so you will only see check-ins on this page. Allow them in the site settings.',
     lapsed: time => `The session stopped because a check-in wasn't confirmed. Time up to ${time} counts.`,
     capped: 'The session reached its maximum length and stopped.',
+    pausedOut: time => `The session closed by itself because it was paused too long. Time up to ${time} counts.`,
+    paused: 'Paused',
+    autoCloseIn: left => `The timer is stopped. If you don't come back, the session closes by itself in ${left}.`,
     addNoteFirst: 'Add a note before you start a new one.',
     whatDidYouDo: 'What did you do?',
     endSession: 'End session',
@@ -78,6 +82,7 @@ export const en: Dict = {
     yesStillWorking: 'Yes, still working',
     stopped: 'Your session stopped.',
     addNote: 'Add a note',
+    finishOrResume: 'save a note or go back to work',
   },
   board: {
     week: 'Week',
@@ -116,6 +121,7 @@ export const en: Dict = {
   entry: {
     status: {
       active: 'writing now',
+      paused: 'paused',
       lapsed: 'missed check-in',
       capped: 'auto-stopped',
       voided: 'voided',
@@ -161,6 +167,7 @@ export const en: Dict = {
     pingMax: 'Latest check-in after (min)',
     pingWindow: 'Time to answer (min)',
     maxSession: 'Longest session (h)',
+    maxPause: 'Longest pause (min)',
     saveRules: 'Save rules',
     rulesHint: 'Interval changes apply from the next check-in on.',
     doubted: 'Doubted sessions',
@@ -177,6 +184,9 @@ export const en: Dict = {
     ALREADY_ACTIVE: 'A session is already running.',
     SESSION_CLOSED: 'The session is already closed.',
     PING_NOT_DUE: 'The check-in is not due yet.',
+    SESSION_PAUSED: 'The session is paused.',
+    ALREADY_PAUSED: 'The session is already paused.',
+    NOT_PAUSED: 'The session is not paused.',
     NOTE_REQUIRED: 'Write at least a short note about what you did.',
     SESSION_LOCKED: 'The session is locked and can no longer be changed.',
     NOT_ADMIN: 'You need admin rights for this.',

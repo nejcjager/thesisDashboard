@@ -6,7 +6,7 @@
 - CI (`.github/workflows/deploy.yml`) runs test + build on every push to `main` and deploys to GitHub Pages — a push to `main` is a deploy.
 
 # Architecture invariants
-- **The server owns all timing.** Session start/stop, check-ins and finalizing happen in Postgres functions (`start_session`, `answer_ping`, `stop_session`, `finalize_stale_sessions`, `void_session`, `restore_session`) using `now()`. The client never sends timestamps and never writes `sessions` directly (RLS allows select only). Anti-cheat logic goes in SQL, never in React.
+- **The server owns all timing.** Session start/stop, check-ins and finalizing happen in Postgres functions (`start_session`, `answer_ping`, `pause_session`, `resume_session`, `stop_session`, `finalize_stale_sessions`, `void_session`, `restore_session`) using `now()`. The client never sends timestamps and never writes `sessions` directly (RLS allows select only). Anti-cheat logic goes in SQL, never in React.
 - RPC errors are raised as bare codes (`raise exception 'NOTE_REQUIRED'`) and mapped to messages by `src/lib/errors.ts`. A new code needs an entry in `errors` in both `src/lib/i18n/sl.ts` and `en.ts`.
 - `src/lib/types.ts` is a hand-written mirror of the DB schema, not generated. Update it when tables or views change.
 - All Supabase data calls go through `src/lib/api.ts` (`unwrap` throws on error). Don't call `supabase.from(...)` / `.rpc(...)` from components or pages.

@@ -3,6 +3,7 @@ import { notificationsBlocked } from '../lib/alerts'
 import { useApp } from '../lib/context'
 import { errorText } from '../lib/errors'
 import { clock, hm, timeOf } from '../lib/format'
+import { workedSeconds } from '../lib/session'
 import { useTimer } from '../lib/timer'
 import { Modal } from './Modal'
 import { useT } from '../lib/i18n'
@@ -22,16 +23,19 @@ export function TimerPanel() {
   const { t: tr } = useT()
   const [note, setNote] = useState('')
   const [file, setFile] = useState<File | null>(null)
-  const [stopping, setStopping] = useState(false)
 
   if (t.loading) return <section className="card"><span className="phase-pill">{tr.timer.loading}</span><Clock seconds={0} /></section>
 
   const s = t.session
-  const elapsed = s ? (t.serverNow - Date.parse(s.started_at)) / 1000 : 0
+  const elapsed = s ? workedSeconds(s, t.serverNow) : 0
   const left = s ? (Date.parse(s.ping_deadline) - t.serverNow) / 1000 : 0
   const forced = t.phase === 'needsNote'
-  // A due check-in takes over the screen; the half-written note survives in state.
-  const modalOpen = forced || (stopping && t.phase === 'running')
+  const paused = t.phase === 'paused'
+  // KONČAJ pauses on the server, so the dialog survives a reload. Resuming keeps the half-written note.
+  const modalOpen = forced || paused
+  const pauseLeft = s?.paused_at && settings
+    ? (Date.parse(s.paused_at) + settings.max_pause_minutes * 60_000 - t.serverNow) / 1000
+    : 0
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -39,7 +43,6 @@ export function TimerPanel() {
       await t.stop(note, file)
       setNote('')
       setFile(null)
-      setStopping(false)
     } catch { /* shown in the modal */ }
   }
 
@@ -66,7 +69,7 @@ export function TimerPanel() {
             <p className="sub">
               {tr.timer.startedAt} <b>{timeOf(s.started_at)}</b> · {tr.timer.confirmedUntil} <b>{timeOf(s.confirmed_until)}</b> · {tr.timer.endsAfter} <b>{settings?.max_session_hours} h</b>
             </p>
-            <button className="big-btn" onClick={() => setStopping(true)} disabled={t.busy}>{tr.timer.stop}</button>
+            <button className="big-btn" onClick={t.pause} disabled={t.busy}>{tr.timer.stop}</button>
           </>
         )}
 
@@ -77,6 +80,13 @@ export function TimerPanel() {
             <p className="countdown" role="alert">{tr.timer.confirmIn(mmss(left))}</p>
             <button className="big-btn" onClick={t.answer} disabled={t.busy}>{tr.timer.yesStillWorking}</button>
             <Clock seconds={elapsed} small />
+          </>
+        )}
+
+        {paused && s && (
+          <>
+            <span className="phase-pill">{tr.timer.paused}</span>
+            <Clock seconds={elapsed} />
           </>
         )}
 
@@ -94,17 +104,20 @@ export function TimerPanel() {
       </section>
 
       {modalOpen && s && (
-        <Modal labelledBy="stop-title" onClose={forced ? undefined : () => setStopping(false)}>
+        <Modal labelledBy="stop-title">
           <form className="modal-form" onSubmit={submit}>
             {forced && (
               <div className="alert">
                 {s.status === 'lapsed'
                   ? tr.timer.lapsed(timeOf(s.confirmed_until))
-                  : tr.timer.capped}
+                  : s.status === 'completed'
+                    ? tr.timer.pausedOut(timeOf(s.ended_at ?? s.confirmed_until))
+                    : tr.timer.capped}
                 {' '}{tr.timer.addNoteFirst}
               </div>
             )}
             <h2 id="stop-title">{forced ? tr.timer.whatDidYouDo : tr.timer.endSession}</h2>
+            {paused && <p className="sub">{tr.timer.autoCloseIn(mmss(pauseLeft))}</p>}
             <div className="chips">
               <span className="chip">⏱ {hm(s.credited_seconds ?? elapsed)}</span>
               <span className="chip">✔ {tr.timer.checks(s.pings_answered)}</span>
@@ -126,7 +139,7 @@ export function TimerPanel() {
             </label>
             {t.error && <p className="error">{errorText(t.error)}</p>}
             <div className="row end">
-              {!forced && <button type="button" className="btn" onClick={() => setStopping(false)}>{tr.timer.backToWork}</button>}
+              {paused && <button type="button" className="btn" onClick={t.resume} disabled={t.busy}>{tr.timer.backToWork}</button>}
               <button type="submit" className="btn primary" disabled={t.busy}>{t.busy ? tr.timer.saving : tr.timer.saveNote}</button>
             </div>
           </form>

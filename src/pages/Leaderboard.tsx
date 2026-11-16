@@ -33,7 +33,7 @@ export function Leaderboard() {
   const final = addDays(week, 7) <= today
   const rows = useWeekRows(week, all)
   const total = rows.reduce((a, r) => a + r.seconds, 0)
-  const live = useMemo(() => new Set(isCurrent ? (active.data ?? []).map(s => s.user_id) : []), [active.data, isCurrent])
+  const live = useMemo(() => new Set(isCurrent ? (active.data ?? []).filter(s => !s.paused_at).map(s => s.user_id) : []), [active.data, isCurrent])
   const streakMap = useMemo(() => {
     if (!isCurrent) return undefined
     const m = new Map<string, number>()
